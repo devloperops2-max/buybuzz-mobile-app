@@ -1,7 +1,10 @@
+import { useNavigate } from "react-router-dom";
 import BottomNav from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 import {
   User,
   MapPin,
@@ -11,10 +14,15 @@ import {
   HelpCircle,
   LogOut,
   ChevronRight,
+  Package,
 } from "lucide-react";
 
 const Profile = () => {
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+
   const menuItems = [
+    { icon: Package, label: "My Orders", to: "/orders" },
     { icon: User, label: "Edit Profile", to: "/profile/edit" },
     { icon: MapPin, label: "Saved Addresses", to: "/profile/addresses" },
     { icon: CreditCard, label: "Payment Methods", to: "/profile/payment" },
@@ -22,6 +30,12 @@ const Profile = () => {
     { icon: Heart, label: "Wishlist", to: "/profile/wishlist" },
     { icon: HelpCircle, label: "Help & Support", to: "/profile/support" },
   ];
+
+  const handleLogout = async () => {
+    await signOut();
+    toast.success("Logged out successfully");
+    navigate("/auth");
+  };
 
   return (
     <div className="min-h-screen bg-background pb-20 pt-safe">
@@ -61,6 +75,7 @@ const Profile = () => {
           {menuItems.map((item) => (
             <button
               key={item.label}
+              onClick={() => navigate(item.to)}
               className="w-full flex items-center gap-4 p-4 hover:bg-accent transition-colors"
             >
               <item.icon className="w-5 h-5 text-muted-foreground" />
@@ -70,7 +85,7 @@ const Profile = () => {
           ))}
         </Card>
 
-        <Button variant="destructive" className="w-full mt-6 gap-2">
+        <Button variant="destructive" className="w-full mt-6 gap-2" onClick={handleLogout}>
           <LogOut className="w-5 h-5" />
           Logout
         </Button>

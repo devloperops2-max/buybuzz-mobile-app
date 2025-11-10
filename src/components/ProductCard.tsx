@@ -48,8 +48,8 @@ const ProductCard = ({ id, name, price, image, rating, onAddToCart }: ProductCar
           </div>
           <span className="text-xs text-muted-foreground">({rating})</span>
         </div>
-        <div className="flex items-center justify-between">
-          <span className="text-lg font-bold text-primary">${price.toFixed(2)}</span>
+            <div className="flex items-center justify-between">
+              <span className="text-lg font-bold text-primary">₹{price.toFixed(2)}</span>
           <Button
             size="sm"
             onClick={() => onAddToCart(id)}
