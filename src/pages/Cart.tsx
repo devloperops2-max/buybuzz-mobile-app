@@ -126,7 +126,7 @@ const Cart = () => {
   };
 
   const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const shipping = subtotal > 0 ? 49 : 0;
+  const shipping = subtotal > 0 ? 40 : 0;
   const total = subtotal + shipping;
 
   return (
