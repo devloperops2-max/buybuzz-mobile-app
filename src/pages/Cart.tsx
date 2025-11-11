@@ -1,8 +1,14 @@
 import BottomNav from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Minus, Plus, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { Minus, Plus, Trash2, ArrowLeft } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 interface CartItem {
   id: string;
@@ -13,49 +19,130 @@ interface CartItem {
 }
 
 const Cart = () => {
-  const [cartItems, setCartItems] = useState<CartItem[]>([
-    {
-      id: "1",
-      name: "Wireless Bluetooth Headphones",
-      price: 79.99,
-      image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200&h=200&fit=crop",
-      quantity: 1,
-    },
-    {
-      id: "2",
-      name: "Smart Watch Series 5",
-      price: 299.99,
-      image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=200&h=200&fit=crop",
-      quantity: 2,
-    },
-  ]);
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [shippingAddress, setShippingAddress] = useState("");
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  useEffect(() => {
+    if (!user) {
+      navigate("/auth");
+      return;
+    }
+    loadCart();
+  }, [user]);
+
+  const loadCart = () => {
+    const savedCart = localStorage.getItem("cart");
+    if (savedCart) {
+      setCartItems(JSON.parse(savedCart));
+    }
+  };
+
+  const saveCart = (items: CartItem[]) => {
+    localStorage.setItem("cart", JSON.stringify(items));
+    setCartItems(items);
+  };
 
   const updateQuantity = (id: string, delta: number) => {
-    setCartItems((items) =>
-      items.map((item) =>
-        item.id === id
-          ? { ...item, quantity: Math.max(1, item.quantity + delta) }
-          : item
-      )
+    const newItems = cartItems.map((item) =>
+      item.id === id
+        ? { ...item, quantity: Math.max(1, item.quantity + delta) }
+        : item
     );
+    saveCart(newItems);
   };
 
   const removeItem = (id: string) => {
-    setCartItems((items) => items.filter((item) => item.id !== id));
+    const newItems = cartItems.filter((item) => item.id !== id);
+    saveCart(newItems);
+  };
+
+  const handleCheckout = async () => {
+    if (!shippingAddress.trim()) {
+      toast.error("Please enter shipping address");
+      return;
+    }
+
+    if (!user) {
+      toast.error("Please login to continue");
+      return;
+    }
+
+    setIsProcessing(true);
+
+    try {
+      // Create mock payment IDs
+      const mockOrderId = `ORDER_${Date.now()}`;
+      const mockPaymentId = `PAY_${Date.now()}`;
+
+      // Create order
+      const { data: order, error: orderError } = await supabase
+        .from("orders")
+        .insert({
+          user_id: user.id,
+          total_amount: total,
+          status: "pending",
+          payment_method: "mock_payment",
+          payment_status: "paid",
+          razorpay_order_id: mockOrderId,
+          razorpay_payment_id: mockPaymentId,
+          shipping_address: shippingAddress,
+        })
+        .select()
+        .single();
+
+      if (orderError) throw orderError;
+
+      // Create order items
+      const orderItems = cartItems.map((item) => ({
+        order_id: order.id,
+        product_id: item.id,
+        product_name: item.name,
+        product_price: item.price,
+        quantity: item.quantity,
+      }));
+
+      const { error: itemsError } = await supabase
+        .from("order_items")
+        .insert(orderItems);
+
+      if (itemsError) throw itemsError;
+
+      // Clear cart
+      localStorage.removeItem("cart");
+      setCartItems([]);
+      setShippingAddress("");
+
+      toast.success("Order placed successfully!");
+      navigate("/orders");
+    } catch (error) {
+      console.error("Checkout error:", error);
+      toast.error("Failed to place order");
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const shipping = 9.99;
+  const shipping = subtotal > 0 ? 49 : 0;
   const total = subtotal + shipping;
 
   return (
     <div className="min-h-screen bg-background pb-32 pt-safe">
       <div className="px-4 py-6">
-        <h1 className="text-2xl font-bold mb-6">Shopping Cart</h1>
+        <div className="flex items-center gap-4 mb-6">
+          <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <h1 className="text-2xl font-bold">Shopping Cart</h1>
+        </div>
 
         {cartItems.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-muted-foreground">Your cart is empty</p>
+            <p className="text-muted-foreground mb-4">Your cart is empty</p>
+            <Button onClick={() => navigate("/")}>Start Shopping</Button>
           </div>
         ) : (
           <>
@@ -119,8 +206,26 @@ const Cart = () => {
               </div>
             </Card>
 
-            <Button className="w-full" size="lg">
-              Proceed to Checkout
+            <Card className="p-4 mb-4">
+              <Label htmlFor="address" className="text-sm font-semibold mb-2 block">
+                Shipping Address
+              </Label>
+              <Textarea
+                id="address"
+                placeholder="Enter your complete shipping address..."
+                value={shippingAddress}
+                onChange={(e) => setShippingAddress(e.target.value)}
+                className="min-h-[100px]"
+              />
+            </Card>
+
+            <Button 
+              className="w-full" 
+              size="lg"
+              onClick={handleCheckout}
+              disabled={isProcessing || !shippingAddress.trim()}
+            >
+              {isProcessing ? "Processing..." : "Place Order (Mock Payment)"}
             </Button>
           </>
         )}

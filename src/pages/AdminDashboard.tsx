@@ -8,8 +8,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Trash2, Edit, Plus, ArrowLeft } from "lucide-react";
+import { Trash2, Edit, Plus, ArrowLeft, Package } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const AdminDashboard = () => {
   const { user } = useAuth();
@@ -72,9 +79,9 @@ const AdminDashboard = () => {
   const loadOrders = async () => {
     const { data } = await supabase
       .from("orders")
-      .select("*, profiles(full_name)")
+      .select("*, profiles(full_name), order_items(*)")
       .order("created_at", { ascending: false })
-      .limit(10);
+      .limit(20);
     setOrders(data || []);
   };
 
@@ -165,6 +172,20 @@ const AdminDashboard = () => {
     } else {
       toast.success("User deleted");
       loadUsers();
+    }
+  };
+
+  const handleUpdateOrderStatus = async (orderId: string, newStatus: string) => {
+    const { error } = await supabase
+      .from("orders")
+      .update({ status: newStatus as any })
+      .eq("id", orderId);
+
+    if (error) {
+      toast.error("Failed to update order status");
+    } else {
+      toast.success("Order status updated");
+      loadOrders();
     }
   };
 
@@ -301,22 +322,63 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        {/* Recent Orders Section */}
+        {/* Orders Section */}
         <div className="mb-8">
-          <h2 className="text-xl font-semibold mb-4">Recent Orders</h2>
-          <div className="space-y-2">
+          <h2 className="text-xl font-semibold mb-4">Orders Management</h2>
+          <div className="space-y-4">
             {orders.map((order) => (
               <Card key={order.id} className="p-4">
-                <div className="flex justify-between">
-                  <div>
-                    <p className="font-semibold">{order.profiles?.full_name || "User"}</p>
-                    <p className="text-sm text-muted-foreground">₹{order.total_amount}</p>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <p className="font-semibold">{order.profiles?.full_name || "User"}</p>
+                      <p className="text-sm text-muted-foreground">
+                        Order #{order.razorpay_order_id || order.id.slice(0, 8)}
+                      </p>
+                      <p className="text-sm font-medium mt-1">₹{order.total_amount}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(order.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm font-medium">{order.status}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {new Date(order.created_at).toLocaleDateString()}
-                    </p>
+
+                  {order.order_items && order.order_items.length > 0 && (
+                    <div className="border-t pt-2">
+                      <p className="text-xs font-semibold mb-1">Items:</p>
+                      {order.order_items.map((item: any) => (
+                        <p key={item.id} className="text-xs text-muted-foreground">
+                          {item.product_name} x{item.quantity}
+                        </p>
+                      ))}
+                    </div>
+                  )}
+
+                  {order.shipping_address && (
+                    <div className="border-t pt-2">
+                      <p className="text-xs font-semibold mb-1">Shipping Address:</p>
+                      <p className="text-xs text-muted-foreground">{order.shipping_address}</p>
+                    </div>
+                  )}
+
+                  <div className="border-t pt-2">
+                    <Label className="text-xs mb-1 block">Update Status:</Label>
+                    <Select
+                      value={order.status}
+                      onValueChange={(value) => handleUpdateOrderStatus(order.id, value)}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="processing">Processing</SelectItem>
+                        <SelectItem value="shipped">Shipped</SelectItem>
+                        <SelectItem value="delivered">Delivered</SelectItem>
+                        <SelectItem value="cancelled">Cancelled</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
               </Card>
