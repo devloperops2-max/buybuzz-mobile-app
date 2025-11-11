@@ -33,10 +33,30 @@ const Cart = () => {
     loadCart();
   }, [user]);
 
-  const loadCart = () => {
+  const loadCart = async () => {
     const savedCart = localStorage.getItem("cart");
     if (savedCart) {
-      setCartItems(JSON.parse(savedCart));
+      const cartData = JSON.parse(savedCart);
+      
+      // Fetch current prices from database
+      const productIds = cartData.map((item: CartItem) => item.id);
+      const { data: products } = await supabase
+        .from("products")
+        .select("id, price")
+        .in("id", productIds);
+
+      if (products) {
+        // Update cart items with current prices
+        const updatedCart = cartData.map((item: CartItem) => {
+          const product = products.find((p) => p.id === item.id);
+          return product ? { ...item, price: Number(product.price) } : item;
+        });
+        
+        localStorage.setItem("cart", JSON.stringify(updatedCart));
+        setCartItems(updatedCart);
+      } else {
+        setCartItems(cartData);
+      }
     }
   };
 
