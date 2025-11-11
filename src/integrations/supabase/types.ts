@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      notification_preferences: {
+        Row: {
+          created_at: string | null
+          email_notifications: boolean | null
+          phone_number: string | null
+          sms_notifications: boolean | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          email_notifications?: boolean | null
+          phone_number?: string | null
+          sms_notifications?: boolean | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          email_notifications?: boolean | null
+          phone_number?: string | null
+          sms_notifications?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           created_at: string | null
@@ -59,12 +86,49 @@ export type Database = {
           },
         ]
       }
+      order_status_history: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          location: string | null
+          order_id: string
+          status: Database["public"]["Enums"]["order_status"]
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          location?: string | null
+          order_id: string
+          status: Database["public"]["Enums"]["order_status"]
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          location?: string | null
+          order_id?: string
+          status?: Database["public"]["Enums"]["order_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_status_history_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
           created_at: string | null
           id: string
           payment_method: string | null
           payment_status: string | null
+          razorpay_order_id: string | null
+          razorpay_payment_id: string | null
           shipping_address: string | null
           status: Database["public"]["Enums"]["order_status"] | null
           total_amount: number
@@ -77,6 +141,8 @@ export type Database = {
           id?: string
           payment_method?: string | null
           payment_status?: string | null
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
           shipping_address?: string | null
           status?: Database["public"]["Enums"]["order_status"] | null
           total_amount: number
@@ -89,6 +155,8 @@ export type Database = {
           id?: string
           payment_method?: string | null
           payment_status?: string | null
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
           shipping_address?: string | null
           status?: Database["public"]["Enums"]["order_status"] | null
           total_amount?: number
