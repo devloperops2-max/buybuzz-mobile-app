@@ -49,7 +49,7 @@ const Auth = () => {
     <div className="min-h-screen bg-background flex items-center justify-center px-4 pt-safe pb-safe">
       <Card className="w-full max-w-md p-8">
         <div className="text-center mb-6">
-          <h1 className="text-3xl font-bold text-primary mb-2">BuyBuzz</h1>
+          <h1 className="text-3xl font-bold text-primary mb-2">NV Store</h1>
           <p className="text-muted-foreground">
             {isSignUp ? "Create your account" : "Welcome back"}
           </p>

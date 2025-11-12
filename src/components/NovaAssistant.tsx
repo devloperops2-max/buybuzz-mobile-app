@@ -19,7 +19,7 @@ const NovaAssistant = ({ onClose }: NovaAssistantProps) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      content: "Hi! I'm Nova, your shopping assistant at BuyBuzz. I can help you find the perfect products and answer any questions you have about our items. What are you looking for today?",
+      content: "Hi! I'm Nova, your shopping assistant at NV Store. I can help you find the perfect products and answer any questions you have about our items. What are you looking for today?",
     },
   ]);
   const [input, setInput] = useState("");
