@@ -81,7 +81,7 @@ const Home = () => {
       <header className="sticky top-0 bg-card border-b border-border z-40 pt-safe">
         <div className="px-4 py-4">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-2xl font-bold text-primary">BuyBuzz</h1>
+            <h1 className="text-2xl font-bold text-primary">NV Store</h1>
             <div className="flex gap-2">
               <Button
                 variant="outline"

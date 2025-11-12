@@ -198,39 +198,60 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-24 pt-safe">
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted/30 pb-24 pt-safe">
       <div className="px-4 py-6">
-        <div className="flex items-center gap-4 mb-6">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
+        <div className="flex items-center gap-4 mb-6 bg-card p-4 rounded-xl shadow-lg border-2 border-primary/20">
+          <Button variant="ghost" size="icon" onClick={() => navigate("/")} className="hover:bg-primary/10">
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <h1 className="text-2xl font-bold">Admin Dashboard</h1>
+          <div className="flex-1">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+              NV Store Admin
+            </h1>
+            <p className="text-sm text-muted-foreground">Manage your store with ease</p>
+          </div>
+          <div className="flex gap-3 text-center">
+            <div className="bg-primary/10 px-3 py-2 rounded-lg">
+              <p className="text-xs text-muted-foreground">Products</p>
+              <p className="text-xl font-bold text-primary">{products.length}</p>
+            </div>
+            <div className="bg-secondary/10 px-3 py-2 rounded-lg">
+              <p className="text-xs text-muted-foreground">Orders</p>
+              <p className="text-xl font-bold text-secondary-foreground">{orders.length}</p>
+            </div>
+          </div>
         </div>
 
         {/* Products Section */}
         <div className="mb-8">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold">Products</h2>
-            <Button onClick={() => {
-              setShowProductForm(true);
-              setEditingProduct(null);
-              setProductForm({
-                name: "",
-                description: "",
-                price: "",
-                image_url: "",
-                category: "",
-                stock_quantity: "",
-                rating: "0",
-              });
-            }}>
+          <div className="flex justify-between items-center mb-4 bg-gradient-to-r from-primary/5 to-secondary/5 p-4 rounded-xl border border-primary/20">
+            <div>
+              <h2 className="text-2xl font-bold text-primary">📦 Product Catalog</h2>
+              <p className="text-xs text-muted-foreground">Manage your inventory</p>
+            </div>
+            <Button 
+              onClick={() => {
+                setShowProductForm(true);
+                setEditingProduct(null);
+                setProductForm({
+                  name: "",
+                  description: "",
+                  price: "",
+                  image_url: "",
+                  category: "",
+                  stock_quantity: "",
+                  rating: "0",
+                });
+              }}
+              className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 shadow-lg"
+            >
               <Plus className="w-4 h-4 mr-2" />
               Add Product
             </Button>
           </div>
 
           {showProductForm && (
-            <Card className="p-4 mb-4">
+            <Card className="p-6 mb-4 shadow-xl border-2 border-primary/30 bg-gradient-to-br from-card to-primary/5">
               <form onSubmit={handleProductSubmit} className="space-y-4">
                 <div>
                   <Label>Product Name</Label>
@@ -295,21 +316,27 @@ const AdminDashboard = () => {
             </Card>
           )}
 
-          <div className="space-y-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {products.map((product) => (
-              <Card key={product.id} className="p-4">
+              <Card key={product.id} className="p-4 hover:shadow-xl transition-all hover:scale-105 bg-gradient-to-br from-card to-muted/10 border border-primary/10">
                 <div className="flex gap-4">
                   <img
-                    src={product.image_url}
+                    src={product.image_url || "/placeholder.svg"}
                     alt={product.name}
-                    className="w-16 h-16 object-cover rounded"
+                    className="w-20 h-20 object-cover rounded-lg border-2 border-primary/20 shadow-md"
                   />
                   <div className="flex-1">
-                    <h3 className="font-semibold">{product.name}</h3>
-                    <p className="text-sm text-muted-foreground">₹{product.price} • Stock: {product.stock_quantity}</p>
+                    <h3 className="font-bold text-lg">{product.name}</h3>
+                    <p className="text-xs text-muted-foreground mb-1">{product.category}</p>
+                    <div className="flex gap-2 items-center">
+                      <span className="text-lg font-bold text-primary">₹{product.price}</span>
+                      <span className="text-xs px-2 py-1 bg-secondary/20 rounded-full">
+                        Stock: {product.stock_quantity}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Button size="sm" variant="outline" onClick={() => handleEditProduct(product)}>
+                  <div className="flex flex-col gap-2">
+                    <Button size="sm" variant="outline" onClick={() => handleEditProduct(product)} className="hover:bg-primary/10">
                       <Edit className="w-4 h-4" />
                     </Button>
                     <Button size="sm" variant="destructive" onClick={() => handleDeleteProduct(product.id)}>
@@ -324,10 +351,13 @@ const AdminDashboard = () => {
 
         {/* Orders Section */}
         <div className="mb-8">
-          <h2 className="text-xl font-semibold mb-4">Orders Management</h2>
+          <div className="bg-gradient-to-r from-secondary/5 to-primary/5 p-4 rounded-xl border border-secondary/20 mb-4">
+            <h2 className="text-2xl font-bold text-secondary-foreground">🚚 Orders Management</h2>
+            <p className="text-xs text-muted-foreground">Track and update customer orders</p>
+          </div>
           <div className="space-y-4">
             {orders.map((order) => (
-              <Card key={order.id} className="p-4">
+              <Card key={order.id} className="p-4 hover:shadow-xl transition-all bg-gradient-to-br from-card to-secondary/5 border border-secondary/20">
                 <div className="space-y-3">
                   <div className="flex justify-between items-start">
                     <div>
@@ -388,10 +418,13 @@ const AdminDashboard = () => {
 
         {/* Users Section */}
         <div>
-          <h2 className="text-xl font-semibold mb-4">Users ({users.length})</h2>
-          <div className="space-y-2">
+          <div className="bg-gradient-to-r from-primary/5 to-secondary/5 p-4 rounded-xl border border-primary/20 mb-4">
+            <h2 className="text-2xl font-bold text-primary">👥 User Management</h2>
+            <p className="text-xs text-muted-foreground">Total users: {users.length}</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {users.map((user) => (
-              <Card key={user.id} className="p-4">
+              <Card key={user.id} className="p-4 hover:shadow-lg transition-all bg-gradient-to-br from-card to-primary/5 border border-primary/10">
                 <div className="flex justify-between items-center">
                   <div>
                     <p className="font-semibold">{user.full_name || "User"}</p>
