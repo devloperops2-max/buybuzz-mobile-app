@@ -95,7 +95,13 @@ const Auth = () => {
           toast.error(error.message);
         } else {
           toast.success("Welcome back!");
-          navigate("/");
+          // Check if should redirect to admin
+          if (sessionStorage.getItem("redirect_to_admin") === "true") {
+            sessionStorage.removeItem("redirect_to_admin");
+            navigate("/admin");
+          } else {
+            navigate("/");
+          }
         }
       }
     } catch (error: any) {

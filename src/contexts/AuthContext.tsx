@@ -52,7 +52,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    
+    // Check if user is admin and redirect accordingly
+    if (data?.user && !error) {
+      const { data: roleData } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", data.user.id)
+        .eq("role", "admin")
+        .maybeSingle();
+      
+      // Store admin status for redirect
+      if (roleData) {
+        sessionStorage.setItem("redirect_to_admin", "true");
+      }
+    }
+    
     return { error };
   };
 

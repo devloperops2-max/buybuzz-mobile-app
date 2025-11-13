@@ -1,9 +1,11 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import BottomNav from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   User,
@@ -20,6 +22,27 @@ import {
 const Profile = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const [profile, setProfile] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (user) {
+      loadProfile();
+    }
+  }, [user]);
+
+  const loadProfile = async () => {
+    if (!user) return;
+    
+    const { data } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
+      .single();
+    
+    setProfile(data);
+    setLoading(false);
+  };
 
   const menuItems = [
     { icon: Package, label: "My Orders", to: "/orders" },
@@ -37,6 +60,15 @@ const Profile = () => {
     navigate("/auth");
   };
 
+  if (!user) {
+    navigate("/auth");
+    return null;
+  }
+
+  const displayName = profile?.full_name || user?.email?.split("@")[0] || "User";
+  const displayEmail = user?.email || "No email";
+  const initials = displayName.substring(0, 2).toUpperCase();
+
   return (
     <div className="min-h-screen bg-background pb-20 pt-safe">
       <div className="px-4 py-6">
@@ -46,12 +78,12 @@ const Profile = () => {
         <Card className="p-6 mb-6">
           <div className="flex items-center gap-4 mb-4">
             <Avatar className="w-16 h-16">
-              <AvatarImage src="https://api.dicebear.com/7.x/avataaars/svg?seed=John" />
-              <AvatarFallback>JD</AvatarFallback>
+              <AvatarImage src={profile?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${displayName}`} />
+              <AvatarFallback>{initials}</AvatarFallback>
             </Avatar>
             <div>
-              <h2 className="font-bold text-lg">John Doe</h2>
-              <p className="text-sm text-muted-foreground">john.doe@example.com</p>
+              <h2 className="font-bold text-lg">{displayName}</h2>
+              <p className="text-sm text-muted-foreground">{displayEmail}</p>
             </div>
           </div>
           <div className="grid grid-cols-3 gap-4 pt-4 border-t">
