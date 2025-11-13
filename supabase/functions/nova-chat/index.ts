@@ -13,7 +13,54 @@ serve(async (req) => {
   }
 
   try {
+    // Verify authentication
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: "Authentication required" }),
+        {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
     const { message, conversationHistory } = await req.json();
+    
+    // Validate inputs
+    if (!message || typeof message !== 'string' || message.length > 1000) {
+      return new Response(
+        JSON.stringify({ error: "Invalid message: must be a string with max 1000 characters" }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    if (!Array.isArray(conversationHistory) || conversationHistory.length > 20) {
+      return new Response(
+        JSON.stringify({ error: "Invalid conversation history: must be an array with max 20 messages" }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    // Validate conversation history format
+    for (const msg of conversationHistory) {
+      if (!msg.role || !['user', 'assistant'].includes(msg.role) || 
+          !msg.content || typeof msg.content !== 'string' || msg.content.length > 2000) {
+        return new Response(
+          JSON.stringify({ error: "Invalid conversation history format" }),
+          {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
+    }
     const openAIApiKey = Deno.env.get("OPENAI_API_KEY");
 
     if (!openAIApiKey) {
