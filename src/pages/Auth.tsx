@@ -6,6 +6,31 @@ import { Card } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
+import { z } from "zod";
+
+// Validation schemas
+const signUpSchema = z.object({
+  email: z.string()
+    .email("Invalid email address")
+    .max(255, "Email must be less than 255 characters"),
+  password: z.string()
+    .min(8, "Password must be at least 8 characters")
+    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+    .regex(/[0-9]/, "Password must contain at least one number"),
+  fullName: z.string()
+    .trim()
+    .min(2, "Full name must be at least 2 characters")
+    .max(100, "Full name must be less than 100 characters")
+});
+
+const signInSchema = z.object({
+  email: z.string()
+    .email("Invalid email address")
+    .max(255, "Email must be less than 255 characters"),
+  password: z.string()
+    .min(1, "Password is required")
+});
 
 const Auth = () => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -21,8 +46,27 @@ const Auth = () => {
     setLoading(true);
 
     try {
+      // Validate inputs based on sign up or sign in
       if (isSignUp) {
-        const { error } = await signUp(email, password, fullName);
+        const validationResult = signUpSchema.safeParse({
+          email: email.trim(),
+          password,
+          fullName: fullName.trim()
+        });
+
+        if (!validationResult.success) {
+          const firstError = validationResult.error.errors[0];
+          toast.error(firstError.message);
+          setLoading(false);
+          return;
+        }
+
+        const { error } = await signUp(
+          validationResult.data.email,
+          validationResult.data.password,
+          validationResult.data.fullName
+        );
+        
         if (error) {
           toast.error(error.message);
         } else {
@@ -30,7 +74,23 @@ const Auth = () => {
           navigate("/");
         }
       } else {
-        const { error } = await signIn(email, password);
+        const validationResult = signInSchema.safeParse({
+          email: email.trim(),
+          password
+        });
+
+        if (!validationResult.success) {
+          const firstError = validationResult.error.errors[0];
+          toast.error(firstError.message);
+          setLoading(false);
+          return;
+        }
+
+        const { error } = await signIn(
+          validationResult.data.email,
+          validationResult.data.password
+        );
+        
         if (error) {
           toast.error(error.message);
         } else {

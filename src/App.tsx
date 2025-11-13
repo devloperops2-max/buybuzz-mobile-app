@@ -11,7 +11,6 @@ import Profile from "./pages/Profile";
 import Auth from "./pages/Auth";
 import Orders from "./pages/Orders";
 import AdminDashboard from "./pages/AdminDashboard";
-import MakeAdmin from "./pages/MakeAdmin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,7 +30,6 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/orders" element={<Orders />} />
             <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/make-admin" element={<MakeAdmin />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
